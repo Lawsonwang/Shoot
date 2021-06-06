@@ -1,12 +1,13 @@
 import pygame
 import socket
 from math import *
+import json
 
 
 class Player(pygame.sprite.Sprite):
     blood = 10
 
-    def __init__(self, image, pos):
+    def __init__(self, image, pos, player):
         pygame.sprite.Sprite.__init__(self)
         self.pos = pos
         self.image0 = pygame.image.load(image).convert_alpha()
@@ -19,6 +20,7 @@ class Player(pygame.sprite.Sprite):
         self.angle = 0.0
         self.radius = 30 / 2
         self.blood = 10
+        self.player = player
         self.active = True
 
     def move(self, d):
@@ -82,8 +84,8 @@ def main():
     YELLOW = (255, 255, 0)
     GREEN = (0, 255, 0)
     bullet_speed = 10
-    player1 = Player("player1.png", (100, 100))
-    player2 = Player("player2.png", (width // 2, height // 2))
+    player1 = Player("player1.png", (100, 100), 1)
+    player2 = Player("player2.png", (width // 2, height // 2), 2)
     bulletimg = pygame.image.load('bullet.png').convert_alpha()
     bullet_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group((player1, player2))
@@ -91,6 +93,8 @@ def main():
     cnt = 1
     cnt1 = cnt2 = 0
     bullet_time = 20
+    HOST = '192.168.3.110'
+    PORT = 233
     while running:
         if player1.active:
             pos = pygame.mouse.get_pos()
@@ -113,10 +117,7 @@ def main():
                                             (-cos(player1.angle / 180 * pi) * bullet_speed,
                                              -sin(player1.angle / 180 * pi) * bullet_speed), player1))
                 elif event.button == 3:
-                    for each in player_group.spritedict:
-                        print(each.__dict__)
-                    print(bullet_group.spritedict)
-                    print()
+                    pass
 
         # 人机
         # cnt = (cnt + 1) % 20
@@ -173,6 +174,23 @@ def main():
                 pygame.draw.line(screen, color, (each.rect.left, each.rect.bottom - 5),
                                  (each.rect.left + each.wid * remain, each.rect.bottom - 5), 2)
                 screen.blit(each.image, each.rect)
+
+        send_dict = {'players': [], 'bullets': []}
+        for each in player_group.spritedict:
+            tmp = {'player': each.player, 'rect': [each.rect.left, each.rect.top], 'angle': each.angle,
+                   'blood': each.blood}
+            send_dict['players'].append(tmp)
+        for each in bullet_group.spritedict:
+            tmp = {'player': each.owner.player, 'rect': [each.rect.left, each.rect.top]}
+            send_dict['bullets'].append(tmp)
+
+        send_json = json.dumps(send_dict)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((HOST, PORT))
+        s.send(send_json.encode('utf-8'))
+        # data = s.recv(1024)
+        # print(data.decode('utf-8'))
+        s.close()
 
         pygame.display.flip()
         clock.tick(60)

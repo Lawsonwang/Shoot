@@ -1,4 +1,5 @@
-import socket  # socket模块
+import socket
+import json
 
 HOST = '192.168.3.110'
 PORT = 233
@@ -9,9 +10,10 @@ while 1:
     conn, addr = s.accept()  # 接受TCP连接，并返回新的套接字与IP地址
     print('Connected by', addr)  # 输出客户端的IP地址
     try:
-        data = conn.recv(1024)
-        print(data.decode('utf-8'))
-        conn.send(data)
+        data = conn.recv(1024).decode('utf-8')
+        data = json.loads(data)
+        print(data)
+        # conn.send(data)
     except ConnectionResetError as e:
         pass
         # print('关闭了正在占线的链接！')
