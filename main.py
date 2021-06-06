@@ -114,8 +114,8 @@ def main():
                     if player1.active and cnt1 >= bullet_time:
                         cnt1 = 0
                         bullet_group.add(Bullet('bullet.png', player1.rect.center,
-                                            (-cos(player1.angle / 180 * pi) * bullet_speed,
-                                             -sin(player1.angle / 180 * pi) * bullet_speed), player1))
+                                                (-cos(player1.angle / 180 * pi) * bullet_speed,
+                                                 -sin(player1.angle / 180 * pi) * bullet_speed), player1))
                 elif event.button == 3:
                     pass
 
@@ -169,10 +169,13 @@ def main():
                     color = YELLOW
                 else:
                     color = RED
-                pygame.draw.line(screen, GRAY, (each.rect.left + each.wid * remain, each.rect.bottom - 5),
-                                 (each.rect.left + each.wid - 1, each.rect.bottom - 5), 2)
-                pygame.draw.line(screen, color, (each.rect.left, each.rect.bottom - 5),
-                                 (each.rect.left + each.wid * remain, each.rect.bottom - 5), 2)
+
+                dl = (each.rect.right - each.rect.left - each.wid) // 2
+                if remain < 1:
+                    pygame.draw.line(screen, GRAY, (each.rect.left + each.wid * remain + dl, each.rect.centery + 30),
+                                     (each.rect.left + each.wid + dl, each.rect.centery + 30), 2)
+                pygame.draw.line(screen, color, (each.rect.left + dl, each.rect.centery + 30),
+                                 (each.rect.left + each.wid * remain + dl - 1, each.rect.centery + 30), 2)
                 screen.blit(each.image, each.rect)
 
         send_dict = {'players': [], 'bullets': []}
