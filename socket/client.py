@@ -1,11 +1,54 @@
 import socket
+import threading
+
+running = True
+
+
+def send(sock):
+    global running
+    while True:
+        data = input()
+        sock.send(data.encode("utf-8"))
+        if data == ".quit":
+            running = False
+            break
+
+
+def recv(sock):
+    global running
+    while running:
+        try:
+            rec = sock.recv(1024).decode('utf-8')
+            if rec == '.quit':
+                continue
+            print(rec)
+        except:
+            break
+
+
 HOST = '192.168.3.110'
 PORT = 233
-while True:
-    cmd = input("Please input:")        # 与人交互，输入命令
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)       # 定义socket类型，网络通信，TCP
-    s.connect((HOST, PORT))        # 要连接的IP与端口
-    s.send(cmd.encode('utf-8'))       # 把命令发送给对端
-    data = s.recv(1024)      # 把接收的数据定义为变量
-    print(data.decode('utf-8'))          # 输出变量
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    s.connect((HOST, PORT))
+    t1 = threading.Thread(target=recv, args=(s,))
+    t2 = threading.Thread(target=send, args=(s,))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+except:
+    pass
+finally:
     s.close()
+
+
+
+# threading.Thread(target=recv, args=(s,)).start()
+#
+# while True:
+#     send = input("Please input:")
+#     if send == 'exit':
+#         running = False
+#         break
+#     s.send(send.encode('utf-8'))
